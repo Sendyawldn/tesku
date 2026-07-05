@@ -4,6 +4,7 @@
   "private": true,
   "main": "index.js",
   "devDependencies": {
+    "tailwindcss": "3",
     "typescript": "^5.0.0"
   }
 }
