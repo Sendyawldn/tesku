@@ -1,10 +1,34 @@
+"use client";
+
 import { Button } from "@tesku/ui/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@tesku/ui/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@tesku/ui/components/ui/card";
 import { Input } from "@tesku/ui/components/ui/input";
 import { Label } from "@tesku/ui/components/ui/label";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { loginAction } from "../actions/auth";
 
 export default function LoginPage() {
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  async function handleSubmit(formData: FormData) {
+    setLoading(true);
+    setError(null);
+    const res = await loginAction(formData);
+    
+    if (res?.error) {
+      setError(res.error);
+      setLoading(false);
+    } else if (res?.success) {
+      // Redirect to dashboard
+      router.push("/");
+      router.refresh();
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center gradient-bg relative overflow-hidden">
       {/* Decorative blobs */}
@@ -23,12 +47,18 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form>
+            <form action={handleSubmit}>
               <div className="space-y-4">
+                {error && (
+                  <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md border border-destructive/20 text-center">
+                    {error}
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input 
                     id="email" 
+                    name="email"
                     type="email" 
                     placeholder="admin@tesku.id" 
                     required 
@@ -44,6 +74,7 @@ export default function LoginPage() {
                   </div>
                   <Input 
                     id="password" 
+                    name="password"
                     type="password" 
                     required 
                     className="bg-background/50 focus:bg-background transition-colors"
@@ -51,11 +82,9 @@ export default function LoginPage() {
                 </div>
               </div>
               <div className="mt-8">
-                <Link href="/">
-                  <Button className="w-full font-medium" size="lg">
-                    Masuk ke Dashboard
-                  </Button>
-                </Link>
+                <Button type="submit" disabled={loading} className="w-full font-medium" size="lg">
+                  {loading ? "Memproses..." : "Masuk ke Dashboard"}
+                </Button>
               </div>
             </form>
           </CardContent>
