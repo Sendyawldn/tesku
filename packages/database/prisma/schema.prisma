@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  NUMERIC_INPUT
+  IMAGE_CHOICE
+  SEQUENCE_COMPARE
+  MEMORY_RECALL
+  LIKERT_SCALE
+}
+
+enum TestCategory {
+  DEDUCTIVE_REASONING
+  READING_COMPREHENSION
+  QUANTITATIVE_REASONING
+  INDUCTIVE_REASONING
+  VISUALIZATION
+  PERCEPTUAL_SPEED
+  WORKING_MEMORY
+  PERSONALITY
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model User {
+  id             Int            @id @default(autoincrement())
+  email          String         @unique
+  name           String
+  password       String
+  role           UserRole       @default(USER)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  testSessions   TestSession[]
+  subscription   Subscription?
+}
+
+model Passage {
+  id        Int        @id @default(autoincrement())
+  title     String?
+  content   String
+  createdAt DateTime   @default(now())
+
+  questions Question[]
+}
+
+model Question {
+  id              Int           @id @default(autoincrement())
+  category        TestCategory
+  type            QuestionType
+  prompt          String
+  imageUrl        String?
+  passageId       Int?
+  explanation     String?
+  difficultyLevel Int           @default(1)
+
+  correctNumericAnswer  Float?
+  compareValueA   String?
+  compareValueB   String?
+  isSame          Boolean?
+  stimulusConfig  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  passage   Passage?         @relation(fields: [passageId], references: [id])
+  options   QuestionOption[]
+  answers   TestAnswer[]
+}
+
+model QuestionOption {
+  id          Int      @id @default(autoincrement())
+  questionId  Int
+  label       String?
+  imageUrl    String?
+  isCorrect   Boolean  @default(false)
+  traitScore  Json?
+
+  question  Question @relation(fields: [questionId], references: [id])
+}
+
+model TestSession {
+  id           Int            @id @default(autoincrement())
+  userId       Int
+  category     TestCategory?
+  status       SessionStatus  @default(IN_PROGRESS)
+  startedAt    DateTime       @default(now())
+  expiresAt    DateTime
+  completedAt  DateTime?
+  totalScore   Float?
+
+  user     User          @relation(fields: [userId], references: [id])
+  answers  TestAnswer[]
+}
+
+model TestAnswer {
+  id                Int      @id @default(autoincrement())
+  sessionId         Int
+  questionId        Int
+  selectedOptionId  Int?
+  numericAnswer     Float?
+  booleanAnswer     Boolean?
+  recallAnswer      Json?
+  isCorrect         Boolean?
+  responseTimeMs    Int?
+  answeredAt        DateTime @default(now())
+
+  session   TestSession @relation(fields: [sessionId], references: [id])
+  question  Question    @relation(fields: [questionId], references: [id])
+}
+
+model Subscription {
+  id          Int                 @id @default(autoincrement())
+  userId      Int                 @unique
+  status      SubscriptionStatus  @default(ACTIVE)
+  startedAt   DateTime            @default(now())
+  expiresAt   DateTime
+  xenditInvoiceId String?         @unique
+
+  user  User @relation(fields: [userId], references: [id])
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@tesku/config",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
