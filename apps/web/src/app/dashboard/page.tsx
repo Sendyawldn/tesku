@@ -1,29 +1,89 @@
+"use client";
+
 import { Button } from "@tesku/ui/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Play, Clock, BrainCircuit, Activity } from "lucide-react";
 import { logoutUser } from "../actions/auth";
-import { redirect } from "next/navigation";
+import { startTestSession } from "../actions/test";
+import { useState } from "react";
+
+const testModules = [
+  {
+    id: "DEDUCTIVE_REASONING",
+    name: "Penalaran Deduktif",
+    desc: "Uji kemampuan Anda menarik kesimpulan logis dari premis yang ada.",
+    icon: BrainCircuit,
+    time: "15 Menit",
+    color: "from-blue-500/20 to-cyan-500/20"
+  },
+  {
+    id: "PERSONALITY",
+    name: "Kepribadian",
+    desc: "Pahami gaya kerja dan kecenderungan perilaku Anda secara profesional.",
+    icon: Activity,
+    time: "10 Menit",
+    color: "from-purple-500/20 to-pink-500/20"
+  }
+];
 
 export default function DashboardPage() {
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
   async function handleLogout() {
-    "use server";
     await logoutUser();
-    redirect("/login");
+    window.location.href = "/login";
+  }
+
+  async function handleStartTest(category: string) {
+    setLoadingId(category);
+    await startTestSession(category);
+    setLoadingId(null);
   }
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-5xl mx-auto flex flex-col items-center justify-center h-[80vh] space-y-8 text-center">
-        <h1 className="text-4xl font-bold gradient-text">Dasbor Peserta</h1>
-        <p className="text-xl text-muted-foreground">
-          Selamat datang! Modul ujian dan hasil analisis Anda akan segera tersedia di sini.
-        </p>
-        
-        <form action={handleLogout}>
-          <Button variant="destructive" size="lg" className="gap-2">
-            <LogOut className="h-5 w-5" />
+    <div className="min-h-screen p-6 md:p-12 pb-24">
+      <div className="max-w-6xl mx-auto space-y-12">
+        <header className="flex justify-between items-center bg-card/50 backdrop-blur-md border border-white/5 p-6 rounded-2xl">
+          <div>
+            <h1 className="text-3xl font-bold gradient-text">Dasbor Peserta</h1>
+            <p className="text-muted-foreground mt-1">Pilih modul ujian untuk memulai evaluasi Anda.</p>
+          </div>
+          <Button variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={handleLogout}>
+            <LogOut className="h-5 w-5 mr-2" />
             Keluar
           </Button>
-        </form>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {testModules.map((mod) => (
+            <div key={mod.id} className={`glass-card p-6 rounded-2xl relative overflow-hidden group transition-all hover:scale-[1.02]`}>
+              <div className={`absolute inset-0 bg-gradient-to-br ${mod.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
+              <div className="relative z-10 space-y-4">
+                <div className="bg-background/80 w-12 h-12 rounded-xl flex items-center justify-center border border-white/10">
+                  <mod.icon className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">{mod.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{mod.desc}</p>
+                </div>
+                <div className="flex items-center text-sm font-medium text-muted-foreground bg-background/50 w-fit px-3 py-1.5 rounded-full border border-white/5">
+                  <Clock className="h-4 w-4 mr-2" />
+                  {mod.time}
+                </div>
+                <Button 
+                  className="w-full mt-4" 
+                  disabled={loadingId === mod.id}
+                  onClick={() => handleStartTest(mod.id)}
+                >
+                  {loadingId === mod.id ? "Memulai..." : (
+                    <>
+                      <Play className="h-4 w-4 mr-2" /> Mulai Simulasi
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
