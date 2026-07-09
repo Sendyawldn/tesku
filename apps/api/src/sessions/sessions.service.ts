@@ -160,4 +160,11 @@ export class SessionsService {
 
     return { success: true, message: 'Answers auto-saved' };
   }
+
+  async getMyHistory(userId: number) {
+    return this.prisma.testSession.findMany({
+      where: { userId },
+      orderBy: { startedAt: 'desc' },
+    });
+  }
 }

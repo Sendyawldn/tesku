@@ -17,6 +17,11 @@ export class SessionsController {
     return this.sessionsService.getSessionQuestions(+id, req.user.sub);
   }
 
+  @Get('my-history')
+  getMyHistory(@Request() req: any) {
+    return this.sessionsService.getMyHistory(req.user.sub);
+  }
+
   @Post(':id/submit')
   submitAnswers(
     @Request() req: any,

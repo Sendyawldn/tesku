@@ -23,4 +23,16 @@ export class UsersService {
       data,
     });
   }
+
+  async findAllUsersWithSessions() {
+    return this.prisma.user.findMany({
+      where: { role: 'USER' }, // Only fetch participants
+      include: {
+        testSessions: {
+          orderBy: { startedAt: 'desc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }

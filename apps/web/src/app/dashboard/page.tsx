@@ -6,6 +6,9 @@ import { logoutUser } from "../actions/auth";
 import { startTestSession } from "../actions/test";
 import { useState } from "react";
 
+import { getMyTestHistory } from "../actions/history";
+import { useEffect } from "react";
+
 const testModules = [
   {
     id: "DEDUCTIVE_REASONING",
@@ -27,6 +30,15 @@ const testModules = [
 
 export default function DashboardPage() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadHistory() {
+      const data = await getMyTestHistory();
+      setHistory(data);
+    }
+    loadHistory();
+  }, []);
 
   async function handleLogout() {
     await logoutUser();
@@ -83,6 +95,42 @@ export default function DashboardPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-16 pt-8 border-t border-white/10">
+          <h2 className="text-2xl font-bold mb-6">Riwayat Ujian Saya</h2>
+          {history.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {history.map((session) => (
+                <div key={session.id} className="glass-card p-4 rounded-xl flex justify-between items-center">
+                  <div>
+                    <h4 className="font-semibold">{session.category.replace(/_/g, " ")}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(session.startedAt).toLocaleDateString("id-ID", {
+                        day: 'numeric', month: 'long', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    {session.status === 'COMPLETED' ? (
+                      <div className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-500 ring-1 ring-inset ring-emerald-500/20">
+                        Skor: {session.totalScore ?? 0}
+                      </div>
+                    ) : (
+                      <div className="inline-flex items-center rounded-full bg-yellow-500/10 px-3 py-1 text-sm font-medium text-yellow-500 ring-1 ring-inset ring-yellow-500/20">
+                        Belum Selesai
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center p-8 border border-dashed rounded-2xl border-white/20 text-muted-foreground">
+              Anda belum memiliki riwayat ujian.
+            </div>
+          )}
         </div>
       </div>
     </div>
